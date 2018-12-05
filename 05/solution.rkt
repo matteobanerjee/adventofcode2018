@@ -1,41 +1,43 @@
 #lang racket
-(require racket/trace)
 
 (define input (file->string "./input"))
+
 (define (opposite-polarity? a b)
   (and (not (char=? a b)) (char-ci=? a b)))
 
 (define (reduce-once char-list)
   (define (iter lst res)
-    (let* ([_first (first lst)]
-           [_rest (rest lst)]
-           [_second (if (empty? _rest) #f (first _rest))])
-      (cond
-        [(not _second) (cons _first res)]
-        [(opposite-polarity? _first _second) (iter (rest _rest) res)] ;; drop two
-        [else (iter _rest (cons _first res))])))
+    (cond
+      [(empty? lst) res]
+      [(empty? (rest lst)) (cons (first lst) res)]
+      [else
+       (if (opposite-polarity? (first lst) (second lst))
+           (iter (drop lst 2) res) ;; skip next two chars
+           (iter (rest lst) (cons (first lst) res)))]))
   (reverse (iter char-list '())))
 
 (define (reduce str)
   (define (iter char-list)
     (let ([reduction (reduce-once char-list)])
-      (if (equal? reduction char-list)
-          (list->string reduction)
-          (iter reduction))))
-  (iter (string->list str)))
+      (if (equal? reduction char-list) reduction (iter reduction))))
+  (list->string (iter (string->list str))))
 
 (printf "Part 1 Solution: ~a\n" (string-length (reduce input)))
+
 (define alphabet
-  (set (filter char-alphabetic? (map (compose char-downcase integer->char) (range 126)))))
+  (filter char-alphabetic? (map integer->char (range 97 126))))
 
-(define (brute-force-find-best-improvement)
-  (for/fold ([best #f]
-             [best-len +inf.0]
-             #:result (cons  best best-len))
-            ([letter (in-set alphabet)])
-    ;; TODO
-    ))
-(printf "Part 2 Solution: ~a\n" (string-length (reduce input)))
+(define (remove-char-pair c-lowcase str)
+  (let ([rx (regexp (string c-lowcase  #\| (char-upcase c-lowcase)))])
+    (regexp-replace* rx str "")))
 
+(define (brute-force-find-best-improvement str)
+  (argmin identity
+   (map
+    (λ (letter)
+      (string-length (reduce (remove-char-pair letter str))))
+    alphabet)))
+
+(printf "Part 2 Solution: ~a\n" (brute-force-find-best-improvement input))
 
 
