@@ -22,7 +22,7 @@
       (if (equal? reduction char-list) reduction (iter reduction))))
   (list->string (iter (string->list str))))
 
-(printf "Part 1 Solution: ~a\n" (string-length (reduce input)))
+(printf "Part 1 Solution: ~a\n" (time (string-length (reduce input))))
 
 (define alphabet
   (filter char-alphabetic? (map integer->char (range 97 126))))
@@ -38,6 +38,6 @@
       (string-length (reduce (remove-char-pair letter str))))
     alphabet)))
 
-(printf "Part 2 Solution: ~a\n" (brute-force-find-best-improvement input))
+(printf "Part 2 Solution: ~a\n" (time (brute-force-find-best-improvement input)))
 
 
