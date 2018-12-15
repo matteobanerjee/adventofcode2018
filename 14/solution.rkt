@@ -1,6 +1,4 @@
 #lang racket
-(require data/gvector)
-
 (struct state (vec e1 e2) #:transparent)
 
 (define (state-index s elf)
@@ -46,40 +44,22 @@
 
 ;; (printf "Part 1 solution: ~a\n" (part-1-solution 236021))
 
-
-;; --- Part Two ---
-
-;; As it turns out, you got the Elves' plan backwards. They actually want to know how many recipes
-;; appear on the scoreboard to the left of the first recipes whose scores are the digits from your puzzle input.
-
-;;     51589 first appears after 9 recipes.
-;;     01245 first appears after 5 recipes.
-;;     92510 first appears after 18 recipes.
-;;     59414 first appears after 2018 recipes.
-
-;; How many recipes appear on the scoreboard to the left of the score sequence in your puzzle input?
-
 (define (part-2-solution match-vec)
   (define match-len (vector-length match-vec))
-  (define (check-match vec)
+  (define (check-match vec offset)
     (define len (vector-length vec))
-    (for/fold ([match? #t])
-        ([i (in-vector vec (- len match-len) len)]
-         [j (in-vector match-vec)])
-      #:break (not match?)
-      (= i j)))
-  (let loop ([i 0]
-             [s initial-state])
+    (define start-idx (- len match-len offset))
+    (if (< start-idx 0) #f
+        (for/fold ([match? #t])
+                  ([i (in-vector vec start-idx len)]
+                   [j (in-vector match-vec)])
+          #:break (not match?)
+          (= i j))))
+  (let loop ([i 0] [s initial-state])
     (let ([vec (state-vec s)])
       (cond
-        [(< (vector-length vec) match-len) (loop (add1 i) (next-state s))]
-        [(check-match vec)
+        [(or (check-match vec 0) (check-match vec 1))
          (vector-length (vector-drop-right vec match-len))]
         [else (loop (add1 i) (next-state s))]))))
 
-(printf "Test 2 solution: ~a\n" (part-2-solution #(5 9 4 1 4)))
-(printf "Test 2 solution: ~a\n" (part-2-solution #(5 1 5 8 9)))
-
 (printf "Part 2 solution: ~a\n" (part-2-solution #(2 3 6 0 2 1)))
-
-
